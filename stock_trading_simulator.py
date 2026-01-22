@@ -14,6 +14,10 @@ from typing import Dict, List, Optional
 class Stock:
     """股票类"""
     
+    # 价格波动范围常量
+    MIN_PRICE_CHANGE = -0.05  # -5%
+    MAX_PRICE_CHANGE = 0.05   # +5%
+    
     def __init__(self, symbol: str, name: str, initial_price: float):
         self.symbol = symbol  # 股票代码
         self.name = name  # 股票名称
@@ -22,7 +26,7 @@ class Stock:
     
     def update_price(self):
         """模拟股价波动（随机波动 -5% 到 +5%）"""
-        change_percent = random.uniform(-0.05, 0.05)
+        change_percent = random.uniform(self.MIN_PRICE_CHANGE, self.MAX_PRICE_CHANGE)
         self.current_price *= (1 + change_percent)
         self.current_price = round(self.current_price, 2)
         self.price_history.append(self.current_price)
@@ -53,8 +57,14 @@ class Transaction:
 class Portfolio:
     """投资组合类"""
     
-    def __init__(self, initial_cash: float = 100000.0):
+    # 默认初始资金常量
+    DEFAULT_INITIAL_CASH = 100000.0
+    
+    def __init__(self, initial_cash: float = None):
+        if initial_cash is None:
+            initial_cash = self.DEFAULT_INITIAL_CASH
         self.cash = initial_cash  # 现金
+        self.initial_cash = initial_cash  # 记录初始资金
         self.holdings: Dict[str, int] = {}  # 持仓 {股票代码: 数量}
         self.transactions: List[Transaction] = []  # 交易历史
     
@@ -161,9 +171,9 @@ class StockMarket:
 class TradingSimulator:
     """交易模拟器主类"""
     
-    def __init__(self):
+    def __init__(self, initial_cash: float = None):
         self.market = StockMarket()
-        self.portfolio = Portfolio(initial_cash=100000.0)
+        self.portfolio = Portfolio(initial_cash=initial_cash)
         self.round_number = 0
         
         # 初始化一些示例股票
@@ -258,7 +268,7 @@ class TradingSimulator:
         """运行模拟器"""
         print("\n" + "🌟"*30)
         print("  欢迎使用股票交易模拟系统！")
-        print("  初始资金: ¥100,000.00")
+        print(f"  初始资金: ¥{self.portfolio.initial_cash:,.2f}")
         print("🌟"*30)
         
         while True:
@@ -268,10 +278,10 @@ class TradingSimulator:
             if choice == "0":
                 print("\n👋 感谢使用股票交易模拟系统！")
                 final_assets = self.portfolio.get_total_assets(self.market.stocks)
-                profit = final_assets - 100000.0
-                profit_percent = (profit / 100000.0) * 100
+                profit = final_assets - self.portfolio.initial_cash
+                profit_percent = (profit / self.portfolio.initial_cash) * 100
                 print(f"\n📊 最终统计:")
-                print(f"  初始资金: ¥100,000.00")
+                print(f"  初始资金: ¥{self.portfolio.initial_cash:,.2f}")
                 print(f"  最终资产: ¥{final_assets:.2f}")
                 print(f"  盈亏: ¥{profit:+.2f} ({profit_percent:+.2f}%)")
                 break
